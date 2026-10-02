@@ -63,3 +63,12 @@ class FeaturePipeline:
         if self.selector is None:
             raise RuntimeError("FeaturePipeline is not fitted")
         return self.selector.transform(self._scale(X)).astype(np.float32)
+
+def to_sequences(X2d: np.ndarray) -> np.ndarray:
+    """
+    (N, k) -> (N, k, 1): each selected feature becomes one 'timestep'.
+
+    Be clear about what this is: feature order is arbitrary, so this is not
+    real temporal structure. See windowing.py for actual flow sequences.
+    """
+    return X2d.reshape(X2d.shape[0], X2d.shape[1], 1).astype(np.float32)
