@@ -6,10 +6,10 @@ One dataclass holds every setting. Configs are built by layering YAML files
 then applying command-line overrides. Unknown keys raise immediately, so a
 typo in a YAML file cannot silently fall back to a default.
 """
-import argparse
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
 import logging
 from dataclasses import dataclass
