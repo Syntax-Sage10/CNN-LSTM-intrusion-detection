@@ -6,6 +6,7 @@ One dataclass holds every setting. Configs are built by layering YAML files
 then applying command-line overrides. Unknown keys raise immediately, so a
 typo in a YAML file cannot silently fall back to a default.
 """
+import argparse
 
 from __future__ import annotations
 
@@ -20,7 +21,6 @@ log = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = PROJECT_ROOT / "configs" / "default.yaml"
-
 
 @dataclass
 class Config:
@@ -69,3 +69,21 @@ def load_config(paths: list[str | Path], overrides: dict | None = None) -> Confi
     if unknown:
         raise KeyError(f"Unknown config keys: {sorted(unknown)}")
     return Config(**merged)
+
+def build_arg_parser(description: str) -> argparse.ArgumentParser:
+    """CLI flags shared by every script."""
+    p = argparse.ArgumentParser(description=description)
+    p.add_argument("--config", action="append", default=[],
+                   help="Extra YAML layered on top of configs/default.yaml "
+                        "(repeatable), e.g. --config configs/nslkdd.yaml")
+    p.add_argument("--no-show", action="store_true", help="Don't open plot windows.")
+    return p
+
+
+def config_from_args(args: argparse.Namespace) -> Config:
+    return load_config([DEFAULT_CONFIG, *args.config])
+
+
+def setup_logging() -> None:
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s | %(levelname)-7s | %(name)s | %(message)s")
