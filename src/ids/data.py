@@ -7,13 +7,14 @@ Anything that learns from the data (scaling, feature selection) lives in
 preprocessing.py and is fit on the training split only.
 """
 
-from __future__ import annotations
-
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 from sklearn.datasets import make_classification
+
+from .config import Config
 
 log = logging.getLogger(__name__)
 
