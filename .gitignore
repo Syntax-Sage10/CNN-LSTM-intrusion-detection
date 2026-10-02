@@ -1,0 +1,18 @@
+# Data never goes in git
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Experiment outputs
+runs/*
+!runs/.gitkeep
+*.pt
+*.joblib
+
+# Python
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
