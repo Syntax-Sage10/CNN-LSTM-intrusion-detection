@@ -36,3 +36,30 @@ def split_dataset(ds: Dataset, cfg: Config) -> Splits:
         ds.X, ds.y, test_size=cfg.test_size, stratify=ds.y, random_state=cfg.seed)
     log.info("Split: train %d | test %d", len(y_tr), len(y_te))
     return Splits(X_tr, y_tr, X_te, y_te)
+
+class FeaturePipeline:
+    """Min-Max scaling to [0, 1] followed by mutual-information top-k selection."""
+
+    def __init__(self, k: int = 10, seed: int = 42):
+        self.k = k
+        self.seed = seed
+        self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self.selector: SelectKBest | None = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "FeaturePipeline":
+        self.scaler.fit(X)
+        k = min(self.k, X.shape[1])
+        # functools.partial (not a lambda) so the pipeline stays picklable.
+        self.selector = SelectKBest(
+            functools.partial(mutual_info_classif, random_state=self.seed), k=k)
+        self.selector.fit(self._scale(X), y)
+        return self
+
+    def _scale(self, X: np.ndarray) -> np.ndarray:
+        # Values outside the training range are clipped, never extrapolated.
+        return np.clip(self.scaler.transform(X), 0.0, 1.0)
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        if self.selector is None:
+            raise RuntimeError("FeaturePipeline is not fitted")
+        return self.selector.transform(self._scale(X)).astype(np.float32)
