@@ -7,12 +7,12 @@ then applying command-line overrides. Unknown keys raise immediately, so a
 typo in a YAML file cannot silently fall back to a default.
 """
 
-
+from __future__ import annotations
 import dataclasses
 import datetime as dt
 import logging
 import random
-from __future__ import annotations
+
 
 import argparse
 import dataclasses
