@@ -7,6 +7,11 @@ then applying command-line overrides. Unknown keys raise immediately, so a
 typo in a YAML file cannot silently fall back to a default.
 """
 
+
+import dataclasses
+import datetime as dt
+import logging
+import random
 from __future__ import annotations
 
 import argparse
@@ -14,7 +19,9 @@ import dataclasses
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from pathlib import Path
 
+import numpy as np
 import yaml
 
 log = logging.getLogger(__name__)
@@ -85,6 +92,31 @@ def build_arg_parser(description: str) -> argparse.ArgumentParser:
 
 def config_from_args(args: argparse.Namespace) -> Config:
     return load_config([DEFAULT_CONFIG, *args.config])
+
+def set_seed(seed: int) -> None:
+    """Seed Python, NumPy and (if installed) PyTorch."""
+    random.seed(seed)
+    np.random.seed(seed)
+    try:
+        import torch
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    except ImportError:
+        pass
+
+
+def create_run_dir(cfg: Config, model_name: str) -> Path:
+    """
+    runs/<timestamp>_<model>_<dataset>/ with the exact config used.
+    Never overwrites: every experiment keeps its own record.
+    """
+    stamp = dt.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    run = Path(cfg.runs_dir) / f"{stamp}_{model_name}_{cfg.name}"
+    run.mkdir(parents=True, exist_ok=False)
+    with open(run / "config.yaml", "w", encoding="utf-8") as f:
+        yaml.safe_dump(dataclasses.asdict(cfg), f, sort_keys=False)
+    log.info("Run directory: %s", run)
+    return run
 
 
 def setup_logging() -> None:
