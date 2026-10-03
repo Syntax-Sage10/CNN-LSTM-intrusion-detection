@@ -11,7 +11,7 @@ from __future__ import annotations
 import functools
 import logging
 from dataclasses import dataclass
-
+import joblib
 import numpy as np
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.model_selection import train_test_split
@@ -64,6 +64,11 @@ class FeaturePipeline:
             raise RuntimeError("FeaturePipeline is not fitted")
         return self.selector.transform(self._scale(X)).astype(np.float32)
 
+    def selected(self, feature_names: list[str]) -> list[tuple[str, float]]:
+        idx = self.selector.get_support(indices=True)
+        pairs = [(feature_names[i], float(self.selector.scores_[i])) for i in idx]
+        return sorted(pairs, key=lambda p: p[1], reverse=True)
+
 def to_sequences(X2d: np.ndarray) -> np.ndarray:
     """
     (N, k) -> (N, k, 1): each selected feature becomes one 'timestep'.
@@ -72,3 +77,11 @@ def to_sequences(X2d: np.ndarray) -> np.ndarray:
     real temporal structure. See windowing.py for actual flow sequences.
     """
     return X2d.reshape(X2d.shape[0], X2d.shape[1], 1).astype(np.float32)
+
+def save_pipeline(path, pipe: FeaturePipeline, class_names, feature_names) -> None:
+    joblib.dump({"pipeline": pipe, "class_names": list(class_names),
+                 "feature_names": list(feature_names)}, path)
+
+
+def load_pipeline(path) -> dict:
+    return joblib.load(path)
