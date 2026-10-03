@@ -22,7 +22,10 @@ dropout: 0.3
 # --- Training ---
 batch_size: 32
 epochs: 10
-lr: 0.001                          # Adam
+lr: 0.001        
+
+# --- Baseline ---
+baseline: random_forest            # random_forest | xgboost                  # Adam
 
 seed: 42
 runs_dir: runs

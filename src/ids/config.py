@@ -50,6 +50,9 @@ class Config:
     epochs: int = 10
     lr: float = 1e-3
 
+        # --- Baseline ---
+    baseline: str = "random_forest"
+
     # --- Misc ---
     seed: int = 42
     runs_dir: str = "runs"
